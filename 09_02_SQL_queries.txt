@@ -1,0 +1,45 @@
+-- Для каждого user_id из Table_1 необходимо найти значение num, 
+-- соответствующее самому последнему периоду (period) из Table_2
+SELECT Table_1.user_id, num  
+FROM Table_1 LEFT JOIN
+(SELECT Table_2.user_id, Table_2.num, Table_2.period 
+FROM Table_2 
+INNER JOIN (
+    SELECT user_id, MAX(period) AS period 
+    FROM Table_2 
+    GROUP BY user_id
+) AS V 
+ON V.user_id = Table_2.user_id AND V.period = Table_2.period) as g USING(user_id);
+
+
+-- Отфильтровать пользователей Table_1, которых нет в Table_2 
+SELECT Table_1.user_id
+FROM Table_1 LEFT JOIN Table_2 USING (user_id)
+WHERE Table_2.user_id is NULL
+
+
+-- Написать запрос, с помощью которого можно найти дубли в поле email из таблицы Staff
+SELECT * FROM STAFF
+WHERE email in (SELECT email
+FROM STAFF
+GROUP BY email
+having count(staff_id) > 1);
+
+
+-- Написать запрос, с помощью которого можно определить возраст каждого 
+-- сотрудника из таблицы Staff на момент запроса.
+SELECT name, DATE_PART('year', AGE(birthday)) age
+FROM Staff;
+
+
+-- Написать запрос, с помощью которого можно определить должность (Jobtitles.name)
+-- со вторым по величине уровнем зарплаты
+SELECT Jobtitles.name, salary
+FROM Jobtitles inner JOIN STAFF USING(jobtitle_id)
+WHERE salary = (SELECT salary FROM 
+                  (SELECT salary
+                  FROM STAFF
+                  ORDER BY salary DESC
+                  LIMIT 2) as V
+                ORDER BY salary
+                LIMIT 1);
